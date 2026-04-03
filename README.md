@@ -533,12 +533,9 @@ For a complete deployment with live data:
 This repo can run on Railway as a **single web service** on one port.
 
 1. Create a new Railway project and connect your GitHub repository.
-2. Set the Railway **Start Command** to:
-
-```bash
-npm run start:railway
-```
-
+2. This repo includes a `railway.json` that forces **Nixpacks Node deployment** (not static-site mode), with:
+   - Build command: `npm run build`
+   - Start command: `npm run start`
 3. Add environment variables in Railway:
    - `DHAN_CLIENT_ID` = your Dhan client ID
    - `DHAN_ACCESS_TOKEN` = your Dhan access token
@@ -546,6 +543,8 @@ npm run start:railway
 4. Deploy. Railway automatically provides `PORT`, and the proxy now binds to that port.
 5. Open your Railway app URL — it serves the React app and `/api/*` + `/ws` from the same domain.
 
+> If Railway logs show `Missing script: start:railway`, you're likely deploying an older commit/branch. Redeploy the latest commit (with `railway.json`) or set Start Command to `npm run start` manually.
+>
 > If you split frontend/proxy into two Railway services, set `VITE_PROXY_URL` (and optionally `VITE_WS_URL`) in the frontend service to point to the proxy URL.
 
 ---
