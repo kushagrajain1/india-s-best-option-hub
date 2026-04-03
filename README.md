@@ -547,6 +547,14 @@ This repo can run on Railway as a **single web service** on one port.
 >
 > If you split frontend/proxy into two Railway services, set `VITE_PROXY_URL` (and optionally `VITE_WS_URL`) in the frontend service to point to the proxy URL.
 
+#### If Railway still says "unable to run"
+
+Use the included `Dockerfile` for deterministic deploys:
+
+1. In Railway service settings, switch to **Dockerfile** builder.
+2. Keep only runtime env vars (`DHAN_CLIENT_ID`, `DHAN_ACCESS_TOKEN`, `NODE_ENV=production`).
+3. Redeploy — Dockerfile runs `npm ci`, `npm run build`, then starts `node proxy-server.mjs` on Railway `PORT`.
+
 ---
 
 ## 🤝 Contributing
