@@ -9,6 +9,7 @@ import {
   Loader2, AlertCircle, Radio, Layers, CandlestickChart, TrendingUp,
 } from "lucide-react";
 import { fetchInstrumentMaster, fetchHistoricalCandles } from "@/lib/marketApi";
+import { PROXY_BASE } from "@/lib/proxyConfig";
 import {
   saveInstruments, savePriceSnapshots, saveCandleHistory, getDatabaseStats,
   clearAllData, setMetadata, type DatabaseStats, type Instrument,
@@ -106,7 +107,7 @@ export function DatabaseManager() {
       setProgress({ phase: "prices", current: 0, total: 100, message: "Fetching F&O price snapshots from NSE..." });
 
       try {
-        const nseRes = await fetch("http://localhost:4002/api/nse-proxy?endpoint=equity-derivatives");
+        const nseRes = await fetch(`${PROXY_BASE}/api/nse-proxy?endpoint=equity-derivatives`);
         if (nseRes.ok) {
           const nseData = await nseRes.json();
           if (nseData?.data) {

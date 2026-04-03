@@ -1,7 +1,7 @@
 /**
  * WebSocket Client — Singleton manager for real-time Dhan market feed
  * 
- * Connects to the local proxy server's WebSocket endpoint (ws://localhost:4002/ws)
+ * Connects to the proxy server's WebSocket endpoint (/ws)
  * which relays parsed Dhan tick data as JSON. Provides a pub/sub interface for
  * React components to subscribe to specific instrument updates.
  * 
@@ -10,6 +10,7 @@
  */
 
 import { getActiveBroker } from "./brokerConfig";
+import { WS_BASE } from "./proxyConfig";
 
 // ── Types ──
 
@@ -72,7 +73,7 @@ class MarketWebSocket {
   private credentialsSent = false;
 
   constructor(url?: string) {
-    this.url = url || `ws://${window.location.hostname}:4002/ws`;
+    this.url = url || `${WS_BASE}/ws`;
   }
 
   /** Is the local proxy WebSocket connected? */

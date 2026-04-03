@@ -15,8 +15,8 @@
 
 import http from "node:http";
 import { URL } from "node:url";
-import { readFileSync } from "node:fs";
-import { resolve, dirname } from "node:path";
+import { readFileSync, existsSync } from "node:fs";
+import { resolve, dirname, extname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { WebSocketServer, WebSocket } from "ws";
 
@@ -38,9 +38,11 @@ try {
   }
 } catch { /* .env file is optional */ }
 
-const PORT = parseInt(process.env.PROXY_PORT || "4002", 10);
+const PORT = parseInt(process.env.PORT || process.env.PROXY_PORT || "4002", 10);
 const DHAN_BASE = "https://api.dhan.co/v2";
 const NSE_BASE = "https://www.nseindia.com";
+const DIST_DIR = resolve(__dirname, "dist");
+const SHOULD_SERVE_STATIC = process.env.SERVE_STATIC === "1" || existsSync(DIST_DIR);
 
 // ══════════════════════════════════════════════
 // ── SECTION 1: In-Memory Cache ──
@@ -785,6 +787,48 @@ const CORS_HEADERS = {
   "Access-Control-Allow-Headers": "Content-Type, x-dhan-client-id, x-dhan-access-token",
 };
 
+function serveStaticAsset(pathname, res) {
+  if (!SHOULD_SERVE_STATIC) return false;
+
+  const safePath = pathname.replace(/^\/+/, "");
+  const requested = safePath || "index.html";
+  const absolutePath = resolve(DIST_DIR, requested);
+  if (!absolutePath.startsWith(DIST_DIR)) return false;
+
+  const contentType = {
+    ".html": "text/html; charset=utf-8",
+    ".js": "application/javascript; charset=utf-8",
+    ".mjs": "application/javascript; charset=utf-8",
+    ".css": "text/css; charset=utf-8",
+    ".json": "application/json; charset=utf-8",
+    ".svg": "image/svg+xml",
+    ".ico": "image/x-icon",
+    ".png": "image/png",
+    ".jpg": "image/jpeg",
+    ".jpeg": "image/jpeg",
+    ".webp": "image/webp",
+    ".txt": "text/plain; charset=utf-8",
+    ".map": "application/json; charset=utf-8",
+  };
+
+  const sendFile = (filePath) => {
+    try {
+      const file = readFileSync(filePath);
+      const ext = extname(filePath);
+      res.writeHead(200, { "Content-Type": contentType[ext] || "application/octet-stream" });
+      res.end(file);
+      return true;
+    } catch {
+      return false;
+    }
+  };
+
+  if (sendFile(absolutePath)) return true;
+
+  const spaFallback = resolve(DIST_DIR, "index.html");
+  return sendFile(spaFallback);
+}
+
 const server = http.createServer(async (req, res) => {
   if (req.method === "OPTIONS") {
     res.writeHead(204, CORS_HEADERS);
@@ -794,11 +838,11 @@ const server = http.createServer(async (req, res) => {
   const url = new URL(req.url, `http://localhost:${PORT}`);
   const params = url.searchParams;
 
-  res.setHeader("Content-Type", "application/json");
   Object.entries(CORS_HEADERS).forEach(([k, v]) => res.setHeader(k, v));
 
   try {
     if (url.pathname === "/api/dhan-proxy") {
+      res.setHeader("Content-Type", "application/json");
       const userClientId = req.headers["x-dhan-client-id"];
       const userAccessToken = req.headers["x-dhan-access-token"];
       const { data, cacheHit } = await handleDhanProxy(params, userClientId, userAccessToken);
@@ -806,16 +850,19 @@ const server = http.createServer(async (req, res) => {
       res.writeHead(200);
       res.end(JSON.stringify(data));
     } else if (url.pathname === "/api/nse-proxy") {
+      res.setHeader("Content-Type", "application/json");
       const { data, cacheHit } = await handleNSEProxy(params);
       res.setHeader("X-Cache", cacheHit ? "HIT" : "MISS");
       res.writeHead(200);
       res.end(JSON.stringify(data));
     } else if (url.pathname === "/api/tv-scan") {
+      res.setHeader("Content-Type", "application/json");
       const { data, cacheHit } = await handleTradingViewScan(params);
       res.setHeader("X-Cache", cacheHit ? "HIT" : "MISS");
       res.writeHead(200);
       res.end(JSON.stringify(data));
     } else if (url.pathname === "/api/test-connection") {
+      res.setHeader("Content-Type", "application/json");
       // Test Dhan API connection with user credentials
       const userClientId = req.headers["x-dhan-client-id"];
       const userAccessToken = req.headers["x-dhan-access-token"];
@@ -830,6 +877,7 @@ const server = http.createServer(async (req, res) => {
         res.end(JSON.stringify({ status: "error", message: err.message }));
       }
     } else if (url.pathname === "/health") {
+      res.setHeader("Content-Type", "application/json");
       res.writeHead(200);
       res.end(JSON.stringify({
         status: "ok",
@@ -846,7 +894,10 @@ const server = http.createServer(async (req, res) => {
           nse: true,
         },
       }));
+    } else if (req.method === "GET" && serveStaticAsset(url.pathname, res)) {
+      return;
     } else {
+      res.setHeader("Content-Type", "application/json");
       res.writeHead(404);
       res.end(JSON.stringify({ error: "Not found. Use /api/dhan-proxy, /api/nse-proxy, /api/tv-scan, or /ws" }));
     }

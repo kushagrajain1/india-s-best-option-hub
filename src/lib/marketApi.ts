@@ -1,8 +1,6 @@
 import type { OptionData, ExpiryDate, IndexData } from "./mockData";
 import { getActiveBroker } from "./brokerConfig";
-
-// Local proxy base URL — override via VITE_PROXY_URL if deploying proxy elsewhere
-const PROXY_BASE = import.meta.env.VITE_PROXY_URL || "http://localhost:4002";
+import { PROXY_BASE } from "./proxyConfig";
 
 // Direct fetch to local proxy with optional user credentials
 async function fetchDhanProxy(endpoint: string, params?: Record<string, string>): Promise<any> {

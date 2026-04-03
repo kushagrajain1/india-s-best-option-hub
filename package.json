@@ -30,6 +30,8 @@
     "dev": "concurrently -n vite,proxy -c cyan,green \"vite\" \"node proxy-server.mjs\"",
     "dev:vite": "vite",
     "proxy": "node proxy-server.mjs",
+    "start": "node proxy-server.mjs",
+    "start:railway": "npm run build && node proxy-server.mjs",
     "dev:live": "concurrently -n vite,proxy -c cyan,green \"vite\" \"node proxy-server.mjs\"",
     "build": "vite build",
     "build:dev": "vite build --mode development",

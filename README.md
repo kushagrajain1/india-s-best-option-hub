@@ -528,6 +528,26 @@ For a complete deployment with live data:
 3. Deploy the frontend on Vercel/Netlify
 4. Set environment variables on the VPS: `DHAN_CLIENT_ID`, `DHAN_ACCESS_TOKEN`
 
+### Deploy on Railway (Single Service: Frontend + Proxy)
+
+This repo can run on Railway as a **single web service** on one port.
+
+1. Create a new Railway project and connect your GitHub repository.
+2. Set the Railway **Start Command** to:
+
+```bash
+npm run start:railway
+```
+
+3. Add environment variables in Railway:
+   - `DHAN_CLIENT_ID` = your Dhan client ID
+   - `DHAN_ACCESS_TOKEN` = your Dhan access token
+   - `NODE_ENV` = `production` (recommended)
+4. Deploy. Railway automatically provides `PORT`, and the proxy now binds to that port.
+5. Open your Railway app URL — it serves the React app and `/api/*` + `/ws` from the same domain.
+
+> If you split frontend/proxy into two Railway services, set `VITE_PROXY_URL` (and optionally `VITE_WS_URL`) in the frontend service to point to the proxy URL.
+
 ---
 
 ## 🤝 Contributing
