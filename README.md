@@ -533,9 +533,7 @@ For a complete deployment with live data:
 This repo can run on Railway as a **single web service** on one port.
 
 1. Create a new Railway project and connect your GitHub repository.
-2. This repo includes a `railway.json` that forces **Nixpacks Node deployment** (not static-site mode), with:
-   - Build command: `npm run build`
-   - Start command: `npm run start`
+2. This repo includes a `railway.json` that forces **Dockerfile deployment** (avoids Nixpacks auto-detect like `deno` setup). Railway builds from `Dockerfile` directly.
 3. Add environment variables in Railway:
    - `DHAN_CLIENT_ID` = your Dhan client ID
    - `DHAN_ACCESS_TOKEN` = your Dhan access token
@@ -551,7 +549,7 @@ This repo can run on Railway as a **single web service** on one port.
 
 Use the included `Dockerfile` for deterministic deploys:
 
-1. In Railway service settings, switch to **Dockerfile** builder.
+1. In Railway service settings, confirm builder is **Dockerfile** (not Nixpacks).
 2. Keep only runtime env vars (`DHAN_CLIENT_ID`, `DHAN_ACCESS_TOKEN`, `NODE_ENV=production`).
 3. Redeploy — Dockerfile runs `npm ci`, `npm run build`, then starts `node proxy-server.mjs` on Railway `PORT`.
 
